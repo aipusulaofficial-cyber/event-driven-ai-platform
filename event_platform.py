@@ -1,7 +1,7 @@
 """Event-driven AI core with idempotency, bounded retries and dead-letter handling."""
 
-from dataclasses import dataclass
 import time
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
