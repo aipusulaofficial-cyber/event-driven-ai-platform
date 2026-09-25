@@ -31,7 +31,7 @@ class EventBus:
                 try:
                     h(e)
                     break
-                except Exception:
+                except RuntimeError:
                     failures += 1
                     if failures > self.max_retries:
                         self.dead_letters.append(e)
