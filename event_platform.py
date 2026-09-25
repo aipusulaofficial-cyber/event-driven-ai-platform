@@ -1,5 +1,6 @@
 """Event-driven AI core with idempotency, bounded retries and dead-letter handling."""
-from dataclasses import dataclass\nimport time
+from dataclasses import dataclass
+import time
 @dataclass(frozen=True)
 class Event: id:str; type:str; payload:dict
 class EventBus:
@@ -13,5 +14,6 @@ class EventBus:
     try:h(e);break
     except Exception:
      failures+=1
-     if failures>self.max_retries:self.dead_letters.append(e);return "dead-letter"\n     time.sleep(min(1.0,self.base_delay*(2**(failures-1))))
+     if failures>self.max_retries:self.dead_letters.append(e);return "dead-letter"
+     time.sleep(min(1.0,self.base_delay*(2**(failures-1))))
   self.processed.add(e.id);return "processed"
