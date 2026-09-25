@@ -47,9 +47,9 @@ class JsonFormatter(logging.Formatter):
 
 
 def get_logger(name):
-    h = logging.StreamHandler()
-    h.setFormatter(JsonFormatter())
+    handler = logging.StreamHandler()
+    handler.setFormatter(JsonFormatter())
     logger = logging.getLogger(name)
-    logger.handlers[:] = [h]
+    logger.handlers[:] = [handler]
     logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
     return logger
