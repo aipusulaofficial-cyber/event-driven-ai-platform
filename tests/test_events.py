@@ -1,4 +1,4 @@
-from event_platform import *
+from event_platform import Event, EventBus
 
 
 def test_idempotency():
