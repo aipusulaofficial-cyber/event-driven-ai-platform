@@ -1,29 +1,29 @@
 # Event-Driven AI Platform
 
-**Principal-level reference implementation** focused on event contracts, asynchronous boundaries, idempotent processing, failure isolation, and operational controls.
+An asynchronous AI platform built around explicit event contracts, idempotent processing, failure isolation and observable execution.
 
-## Engineering intent
-- Clear domain boundaries and replaceable infrastructure adapters
-- Explicit contracts, validation, and failure semantics
-- Deterministic tests with external dependencies isolated
-- Operational readiness through health checks, CI, and security validation
-- Architecture decisions documented so trade-offs are reviewable
+## Event lifecycle
+```text
+producer -> event contract -> consumer -> domain handler -> side effect -> acknowledgement
+                                  |
+                             retry / dead-letter policy
+```
 
-## System design
-The repository is structured around a small set of explicit responsibilities rather than framework-driven coupling. Request/event handling, domain policy, infrastructure adapters, and operational concerns are kept separable so individual components can evolve without forcing a system-wide rewrite.
+## Contracts
+- Event shape and version are explicit.
+- Consumers validate before processing.
+- Processing is designed to be idempotent where retries can occur.
+- Acknowledgement follows the defined processing boundary.
+- Failure and retry semantics are visible rather than implicit.
 
-## Quality bar
-- **Correctness:** contract and edge-case tests cover expected and failure paths
-- **Reliability:** bounded work, explicit timeouts/failures, and health signals where applicable
-- **Security:** least-privilege boundaries, input validation, and safe defaults
-- **Observability:** correlation/context propagation and actionable operational signals
-- **Delivery:** reproducible CI validation before changes are considered complete
+## Reliability
+Transient dependency failures can be retried within bounded policy. Permanent failures are isolated instead of causing an entire stream to appear successful.
 
-## Principal engineering contract
-See [docs/PRINCIPAL-ENGINEERING.md](docs/PRINCIPAL-ENGINEERING.md) for the reviewable engineering contract, NFRs, and change-safety checklist.
+## Observability & security
+Correlation context follows events through processing. Least-privilege controls and input validation protect asynchronous boundaries.
 
-## Architecture & decisions
-See [ARCHITECTURE.md](ARCHITECTURE.md) and the ADRs directory for system boundaries, key trade-offs, and extension points.
+## Verification
+Contract, edge-case and failure-path tests are part of CI, with production and security validation as delivery gates.
 
-## Engineering principle
-The goal is not to maximize framework complexity; it is to make important behavior **explicit, testable, observable, and replaceable**.
+## Evidence
+[ARCHITECTURE.md](ARCHITECTURE.md) · [docs/PRINCIPAL-ENGINEERING.md](docs/PRINCIPAL-ENGINEERING.md) · [ADRs](ADRs/)
