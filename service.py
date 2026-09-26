@@ -16,9 +16,14 @@ app = FastAPI(title="event-driven-ai-platform", version="1.0.0")
 tracer = trace.get_tracer("event-driven-ai-platform")
 
 
+class EventPayload(BaseModel):
+    topic: str | None = Field(default=None, min_length=1, max_length=128)
+    data: dict = Field(default_factory=dict, max_length=32)
+
+
 class Request(BaseModel):
     key: str = Field(min_length=1, max_length=128)
-    payload: dict = Field(default_factory=dict, max_length=32)
+    payload: EventPayload = Field(default_factory=EventPayload)
 
 
 @app.middleware("http")
@@ -48,9 +53,9 @@ def handle(request: Request) -> dict[str, str]:
     with tracer.start_as_current_span("event-driven-ai-platform.publish"):
         try:
             event = Event.create(
-                request.payload.get("topic", request.key),
+                request.payload.topic or request.key,
                 request.key,
-                request.payload,
+                request.payload.data,
             )
             logger.info(
                 "event_accepted topic=%s key=%s event_id=%s",
