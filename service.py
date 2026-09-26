@@ -5,7 +5,8 @@ from broker import InMemoryBroker
 from event_domain import Event
 
 app = FastAPI(title="event-driven-ai-platform", version="1.1.0")
-broker = InMemoryBroker()\napp.add_middleware(PrincipalObservabilityMiddleware)
+broker = InMemoryBroker()
+app.add_middleware(PrincipalObservabilityMiddleware)
 
 
 class EventPayload(BaseModel):
