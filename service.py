@@ -3,6 +3,7 @@ from pydantic import BaseModel, Field
 
 from broker import InMemoryBroker
 from event_domain import Event
+from observability import PrincipalObservabilityMiddleware
 
 app = FastAPI(title="event-driven-ai-platform", version="1.1.0")
 broker = InMemoryBroker()
