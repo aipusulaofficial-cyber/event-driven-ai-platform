@@ -1,11 +1,16 @@
 import json
 import logging
 import os
+import time
+import uuid
 
+from fastapi import Request
 from opentelemetry import trace
 from opentelemetry.sdk.resources import Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 
 def configure_observability():
@@ -53,3 +58,35 @@ def get_logger(name):
     logger.handlers[:] = [handler]
     logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
     return logger
+
+
+class PrincipalObservabilityMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next) -> Response:
+        request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
+        correlation_id = request.headers.get("x-correlation-id") or request_id
+        start = time.perf_counter()
+        status = 500
+        error_type = None
+        tracer = trace.get_tracer("principal-http")
+        try:
+            with tracer.start_as_current_span(
+                f"{request.method} {request.url.path}"
+            ) as span:
+                span.set_attribute("request_id", request_id)
+                span.set_attribute("correlation_id", correlation_id)
+                response = await call_next(request)
+                status = response.status_code
+                response.headers["x-request-id"] = request_id
+                response.headers["x-correlation-id"] = correlation_id
+                response.headers["x-latency-ms"] = f"{(time.perf_counter() - start) * 1000:.3f}"
+                return response
+        except Exception as exc:
+            error_type = type(exc).__name__
+            raise
+        finally:
+            elapsed = (time.perf_counter() - start) * 1000
+            request.state.request_id = request_id
+            request.state.correlation_id = correlation_id
+            request.state.latency_ms = elapsed
+            request.state.status = status
+            request.state.error_type = error_type
