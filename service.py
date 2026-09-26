@@ -1,72 +1,21 @@
-import time
-import uuid
-
-from fastapi import FastAPI, HTTPException
-from fastapi import Request as FastAPIRequest
-from opentelemetry import trace
-from pydantic import BaseModel, Field
-
+import time,uuid
+from fastapi import FastAPI,HTTPException
+from pydantic import BaseModel,Field
 from event_domain import Event
-from observability import configure_observability, get_logger
-
-configure_observability()
-logger = get_logger(__name__)
-
-app = FastAPI(title="event-driven-ai-platform", version="1.0.0")
-tracer = trace.get_tracer("event-driven-ai-platform")
-
-
+from broker import InMemoryBroker
+app=FastAPI(title="event-driven-ai-platform",version="1.1.0"); broker=InMemoryBroker()
 class EventPayload(BaseModel):
-    topic: str | None = Field(default=None, min_length=1, max_length=128)
-    data: dict = Field(default_factory=dict, max_length=32)
-
-
+ topic:str|None=Field(default=None,min_length=1,max_length=128); data:dict=Field(default_factory=dict,max_length=32)
 class Request(BaseModel):
-    key: str = Field(min_length=1, max_length=128)
-    payload: EventPayload = Field(default_factory=EventPayload)
-
-
-@app.middleware("http")
-async def observability_headers(request: FastAPIRequest, call_next):
-    started = time.perf_counter()
-    request_id = request.headers.get("x-request-id") or str(uuid.uuid4())
-    correlation_id = request.headers.get("x-correlation-id") or request_id
-    response = await call_next(request)
-    response.headers["x-request-id"] = request_id
-    response.headers["x-correlation-id"] = correlation_id
-    response.headers["x-latency-ms"] = f"{(time.perf_counter() - started) * 1000:.3f}"
-    return response
-
-
+ key:str=Field(min_length=1,max_length=128); payload:EventPayload=Field(default_factory=EventPayload)
 @app.get("/health/live")
-def live() -> dict[str, str]:
-    return {"status": "ok"}
-
-
+def live(): return {"status":"ok"}
 @app.get("/health/ready")
-def ready() -> dict[str, str]:
-    return {"status": "ready"}
-
-
+def ready(): return {"status":"ready"}
 @app.post("/v1/events")
-def handle(request: Request) -> dict[str, str]:
-    with tracer.start_as_current_span("event-driven-ai-platform.publish"):
-        try:
-            event = Event.create(
-                request.payload.topic or request.key,
-                request.key,
-                request.payload.data,
-            )
-            logger.info(
-                "event_accepted topic=%s key=%s event_id=%s",
-                event.topic,
-                event.key,
-                event.event_id,
-            )
-            return {
-                "event_id": event.event_id,
-                "topic": event.topic,
-                "status": "accepted",
-            }
-        except (ValueError, KeyError, TypeError) as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
+async def handle(request:Request):
+ try:
+  event=Event.create(request.payload.topic or request.key,request.key,request.payload.data)
+  await broker.publish(event.topic,event.key,request.payload.data)
+  return {"event_id":event.event_id,"topic":event.topic,"status":"published"}
+ except (ValueError,KeyError,TypeError) as exc: raise HTTPException(status_code=400,detail=str(exc)) from exc
