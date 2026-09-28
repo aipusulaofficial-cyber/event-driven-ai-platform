@@ -24,4 +24,4 @@ testpaths = ["tests"]
 pythonpath = ["."]
 
 [tool.setuptools]
-py-modules = ["service", "event_domain"]
+py-modules=["broker","event_domain","event_platform","observability","resilience","service"]
