@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Protocol
 
 
@@ -10,5 +11,11 @@ class InMemoryBroker:
         self.messages = []
 
     async def publish(self, topic, key, payload):
-        self.messages.append((topic, key, payload))
+        if not isinstance(topic, str) or not topic.strip():
+            raise ValueError("topic is required")
+        if not isinstance(key, str) or not key.strip():
+            raise ValueError("event key is required")
+        if not isinstance(payload, dict):
+            raise ValueError("payload must be a mapping")
+        self.messages.append((topic, key, deepcopy(payload)))
         return key
