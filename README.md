@@ -1,5 +1,10 @@
 # Event-Driven AI Platform
 
+[![CI](https://github.com/aipusulaofficial-cyber/event-driven-ai-platform/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/aipusulaofficial-cyber/event-driven-ai-platform/actions/workflows/ci.yml)
+[![Production Tests](https://github.com/aipusulaofficial-cyber/event-driven-ai-platform/actions/workflows/production-tests.yml/badge.svg?branch=main)](https://github.com/aipusulaofficial-cyber/event-driven-ai-platform/actions/workflows/production-tests.yml)
+[![Security / SBOM](https://github.com/aipusulaofficial-cyber/event-driven-ai-platform/actions/workflows/security-sbom.yml/badge.svg?branch=main)](https://github.com/aipusulaofficial-cyber/event-driven-ai-platform/actions/workflows/security-sbom.yml)
+
+
 An asynchronous AI platform built around explicit event contracts, idempotent processing, failure isolation and observable execution.
 
 ## Event lifecycle
