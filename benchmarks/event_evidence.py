@@ -67,7 +67,4 @@ def run(requests=200, workers=16):
 
 if __name__ == "__main__":
     report = run()
-    destination = Path("artifacts/event-domain-evidence.json")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    destination.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     print(json.dumps(report, sort_keys=True))
